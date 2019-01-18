@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Shopping List MVP</string>
+
+    <string name="menu_filter">Filter</string>
+    <string name="menu_remove_checked">Remove checked</string>
+    <string name="menu_refresh">Refresh</string>
+    <string name="menu_all">All</string>
+    <string name="menu_checked">Checked</string>
+    <string name="menu_unchecked">Unchecked</string>
+    <string name="menu_sort_by_title">Sort by title</string>
+    <string name="menu_remove">Remove</string>
+
+    <string name="no_products">No Products added</string>
+    <string name="label_all_products">All Products</string>
+    <string name="label_checked_products">Checked Products</string>
+    <string name="label_unchecked_products">Unchecked Products</string>
+    <string name="label_sorted_by_title_products">Products sorted by title</string>
+    <string name="loading_products_error">Error while loading products</string>
+    <string name="product_marked_as_checked">Product marked as checked</string>
+    <string name="product_marked_as_unchecked">Product marked as unchecked</string>
+    <string name="no_unchecked_products">No unchecked Products</string>
+    <string name="no_checked_products">No checked Products</string>
+    <string name="saved_product">Product saved</string>
+    <string name="removed_product">Product removed</string>
+    <string name="removed_checked_products">Removed checked Products</string>
+    <string name="add_product">Add Product</string>
+    <string name="edit_product">Edit Product</string>
+    <string name="add_edit_product_title_hint">Title</string>
+    <string name="add_edit_product_description_hint">Enter a description here</string>
+    <string name="empty_product_message">Product title cannot be empty</string>
+    <string name="no_product">No product</string>
+    <string name="add_edit_product_title_quantity">Quantity</string>
+    <string name="add_edit_product_title_unit">Unit</string>
+
+</resources>

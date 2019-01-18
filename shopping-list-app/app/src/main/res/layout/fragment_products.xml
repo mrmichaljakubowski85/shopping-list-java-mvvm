@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/l_swipe_refresh_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/l_container_product_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_filtering_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/global_padding_horizontal"
+                android:layout_marginTop="@dimen/global_padding_vertical"
+                android:layout_marginRight="@dimen/global_padding_horizontal"
+                android:layout_marginBottom="@dimen/global_padding_vertical"
+                android:gravity="center_vertical"
+                android:textColor="@color/textGrey"
+                android:textAllCaps="true"
+                android:textSize="16sp"
+                tools:text="@string/label_all_products" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_product_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/l_container_no_products"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:id="@+id/tv_no_products_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                tools:text="@string/no_products" />
+
+
+        </LinearLayout>
+    </RelativeLayout>
+
+</android.support.v4.widget.SwipeRefreshLayout>

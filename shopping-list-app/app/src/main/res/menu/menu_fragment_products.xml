@@ -1,0 +1,19 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.tomtre.android.architecture.shoppinglistmvp.ui.products.ProductsActivity">
+
+    <item
+        android:id="@+id/menu_filter"
+        android:title="@string/menu_filter"
+        android:icon="@drawable/ic_filter_list_white_24dp"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_remove_checked"
+        android:title="@string/menu_remove_checked"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_refresh"
+        android:title="@string/menu_refresh"
+        app:showAsAction="never" />
+</menu>

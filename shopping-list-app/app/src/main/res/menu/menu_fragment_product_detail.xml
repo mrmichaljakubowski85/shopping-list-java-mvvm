@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.tomtre.android.architecture.shoppinglistmvp.ui.productdetail.ProductDetailActivity">
+
+    <item
+        android:id="@+id/menu_remove_product"
+        android:title="@string/menu_remove"
+        android:icon="@drawable/ic_remove_white_24dp"
+        app:showAsAction="ifRoom|withText" />
+</menu>
