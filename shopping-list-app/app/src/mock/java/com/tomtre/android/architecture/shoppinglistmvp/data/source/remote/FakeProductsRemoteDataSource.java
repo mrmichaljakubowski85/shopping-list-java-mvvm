@@ -2,16 +2,14 @@ package com.tomtre.android.architecture.shoppinglistmvp.data.source.remote;
 
 import com.google.common.collect.ImmutableList;
 import com.tomtre.android.architecture.shoppinglistmvp.data.Product;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.ProductsDataSource;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.tomtre.android.architecture.shoppinglistmvp.util.CommonUtils.isNull;
-import static com.tomtre.android.architecture.shoppinglistmvp.util.CommonUtils.nonNull;
 
-public class FakeProductsRemoteDataSource implements ProductsDataSource {
+public class FakeProductsRemoteDataSource implements ProductsRemoteDataSource {
 
     private static final Object LOCK = new Object();
     private static FakeProductsRemoteDataSource INSTANCE;
@@ -54,10 +52,7 @@ public class FakeProductsRemoteDataSource implements ProductsDataSource {
     @Override
     public void getProduct(final String productId, final LoadProductCallback loadProductCallback) {
         final Product product = productsServiceData.get(productId);
-        if (nonNull(product))
-            loadProductCallback.onProductLoaded(product);
-        else
-            loadProductCallback.onDataNotAvailable();
+        loadProductCallback.onProductLoaded(product);
     }
 
     @Override

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.local.ProductsDatabase;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.local.ProductsLocalDataSource;
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.remote.FakeProductsRemoteDataSource;
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.ProductsRepository;
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.ProductsRepositoryImpl;
@@ -20,14 +19,11 @@ public class Injection {
         checkNotNull(context);
         Context appContext = context.getApplicationContext();
 
-        ProductsCache productsCache = ProductsCache.getInstance();
         FakeProductsRemoteDataSource fakeProductsRemoteDataSource = FakeProductsRemoteDataSource.getInstance();
         AppExecutors appExecutors = AppExecutors.getInstance(Executors.newSingleThreadExecutor(), new AppExecutors.MainThreadExecutor());
         ProductsDatabase productsDatabase = ProductsDatabase.getInstance(appContext);
-        ProductsLocalDataSource productsLocalDataSource = ProductsLocalDataSource.getInstance(
-                appExecutors, productsDatabase.productsDao());
 
-        return ProductsRepositoryImpl.getInstance(productsCache, fakeProductsRemoteDataSource, productsLocalDataSource);
+        return ProductsRepositoryImpl.getInstance(fakeProductsRemoteDataSource, productsDatabase.productsDao(), appExecutors);
     }
 
 }

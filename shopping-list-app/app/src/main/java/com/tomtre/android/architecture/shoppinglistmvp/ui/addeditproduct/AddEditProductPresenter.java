@@ -89,7 +89,7 @@ public class AddEditProductPresenter implements AddEditProductContract.Presenter
 
     private void loadProduct() {
         EspressoIdlingResource.increment();
-        productsRepository.getProduct(productId, new AddEditProductLoadCallback(this));
+//        productsRepository.getProduct(productId, new AddEditProductLoadCallback(this));
     }
 
     private void createProduct(String title, String description, String quantity, String unit) {

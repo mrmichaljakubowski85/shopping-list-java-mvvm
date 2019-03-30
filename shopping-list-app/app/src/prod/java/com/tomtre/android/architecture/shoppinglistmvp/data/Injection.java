@@ -4,8 +4,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.local.ProductsDatabase;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.local.ProductsLocalDataSource;
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.remote.ProductsRemoteDataSource;
+import com.tomtre.android.architecture.shoppinglistmvp.data.source.remote.ProductsRemoteDataSourceImpl;
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.ProductsRepository;
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.ProductsRepositoryImpl;
 import com.tomtre.android.architecture.shoppinglistmvp.util.AppExecutors;
@@ -19,13 +19,10 @@ public class Injection {
         checkNotNull(context);
         Context appContext = context.getApplicationContext();
 
-        ProductsCache productsCache = ProductsCache.getInstance();
-        ProductsRemoteDataSource productsRemoteDataSource = ProductsRemoteDataSource.getInstance();
+        ProductsRemoteDataSource productsRemoteDataSource = ProductsRemoteDataSourceImpl.getInstance();
         AppExecutors appExecutors = AppExecutors.getInstance(Executors.newSingleThreadExecutor(), new AppExecutors.MainThreadExecutor());
         ProductsDatabase productsDatabase = ProductsDatabase.getInstance(appContext);
-        ProductsLocalDataSource productsLocalDataSource = ProductsLocalDataSource.getInstance(
-                appExecutors, productsDatabase.productsDao());
 
-        return ProductsRepositoryImpl.getInstance(productsCache, productsRemoteDataSource, productsLocalDataSource);
+        return ProductsRepositoryImpl.getInstance(productsRemoteDataSource, productsDatabase.productsDao(), appExecutors);
     }
 }

@@ -1,33 +1,22 @@
 package com.tomtre.android.architecture.shoppinglistmvp.data.source.repository;
 
+import android.arch.lifecycle.LiveData;
+
 import com.tomtre.android.architecture.shoppinglistmvp.data.Product;
 
 import java.util.List;
 
 public interface ProductsRepository {
 
-    interface LoadProductListCallback {
+    LiveData<List<Product>> getProducts();
 
-        void onProductsLoaded(List<Product> products);
-
-        void onDataNotAvailable();
-
-    }
-    interface LoadProductCallback {
-
-        void onProductLoaded(Product product);
-
-        void onDataNotAvailable();
-
-    }
-
-    void getProducts(ProductsRepository.LoadProductListCallback loadProductListCallback);
+    void refreshProducts();
 
     void removeCheckedProducts();
 
     void removeAllProducts();
 
-    void getProduct(String productId, ProductsRepository.LoadProductCallback loadProductCallback);
+    LiveData<Product> getProduct(String productId);
 
     void saveProduct(Product product);
 
@@ -42,4 +31,5 @@ public interface ProductsRepository {
     void uncheckProduct(String productId);
 
     void forceToLoadFromRemoteNextCall();
+
 }

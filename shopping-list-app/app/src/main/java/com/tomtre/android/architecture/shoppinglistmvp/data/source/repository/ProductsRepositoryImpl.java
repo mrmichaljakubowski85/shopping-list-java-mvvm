@@ -1,16 +1,12 @@
 package com.tomtre.android.architecture.shoppinglistmvp.data.source.repository;
 
+import android.arch.lifecycle.LiveData;
 import android.support.annotation.VisibleForTesting;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.tomtre.android.architecture.shoppinglistmvp.data.Product;
-import com.tomtre.android.architecture.shoppinglistmvp.data.ProductsCache;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.ProductsDataSource;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.callback.ProductListLocalCallback;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.callback.ProductListRemoteCallback;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.callback.ProductLocalCallback;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.callback.ProductRemoteCallback;
+import com.tomtre.android.architecture.shoppinglistmvp.data.source.local.ProductsDao;
+import com.tomtre.android.architecture.shoppinglistmvp.data.source.remote.ProductsRemoteDataSource;
+import com.tomtre.android.architecture.shoppinglistmvp.util.AppExecutors;
 
 import java.util.List;
 
@@ -25,22 +21,27 @@ public class ProductsRepositoryImpl implements ProductsRepository {
 
     private static final Object LOCK = new Object();
     private static ProductsRepositoryImpl INSTANCE;
-    private final ProductsCache productsCache;
-    private final ProductsDataSource productsRemoteDataSource;
-    private final ProductsDataSource productsLocalDataSource;
+    private final ProductsRemoteDataSource productsRemoteDataSource;
+    private final ProductsDao productsDao;
+    private final AppExecutors appExecutors;
+    private boolean initialized = false;
 
 
-    private ProductsRepositoryImpl(ProductsCache productsCache, ProductsDataSource productsRemoteDataSource, ProductsDataSource productsLocalDataSource) {
-        this.productsCache = productsCache;
+    private ProductsRepositoryImpl(ProductsRemoteDataSource productsRemoteDataSource,
+                                   ProductsDao productsDao,
+                                   AppExecutors appExecutors) {
         this.productsRemoteDataSource = productsRemoteDataSource;
-        this.productsLocalDataSource = productsLocalDataSource;
+        this.productsDao = productsDao;
+        this.appExecutors = appExecutors;
     }
 
-    public static ProductsRepositoryImpl getInstance(ProductsCache productsCache, ProductsDataSource productsRemoteDataSource, ProductsDataSource productsLocalDataSource) {
+    public static ProductsRepositoryImpl getInstance(ProductsRemoteDataSource productsRemoteDataSource,
+                                                     ProductsDao productsDao,
+                                                     AppExecutors appExecutors) {
         if (isNull(INSTANCE)) {
             synchronized (LOCK) {
                 if (isNull(INSTANCE)) {
-                    INSTANCE = new ProductsRepositoryImpl(productsCache, productsRemoteDataSource, productsLocalDataSource);
+                    INSTANCE = new ProductsRepositoryImpl(productsRemoteDataSource, productsDao, appExecutors);
                 }
             }
         }
@@ -52,37 +53,39 @@ public class ProductsRepositoryImpl implements ProductsRepository {
         INSTANCE = null;
     }
 
-    @Override
-    public void getProducts(final LoadProductListCallback repositoryLoadProductListCallback) {
-        Timber.d("getProducts");
-        checkNotNull(repositoryLoadProductListCallback);
-        List<Product> productsFromCache = getProductsFromCache();
-        if (!productsFromCache.isEmpty()) {
-            Timber.d("Cache - products: %s", productsFromCache);
-            repositoryLoadProductListCallback.onProductsLoaded(productsFromCache);
-        } else {
-            Timber.d("Cache is empty");
-            getProductsFromLocalDataSource(repositoryLoadProductListCallback);
-        }
+    private void initializeData() {
+        if (initialized)
+            return;
+        initialized = true;
+        fetchProductsFromRemoteDataSource();
     }
 
     @Override
-    public void saveProduct(Product product) {
+    public void refreshProducts() {
+        fetchProductsFromRemoteDataSource();
+    }
+
+    @Override
+    public LiveData<List<Product>> getProducts() {
+        Timber.d("getProducts");
+        initializeData();
+        return productsDao.getProducts();
+    }
+
+    @Override
+    public void saveProduct(final Product product) {
         Timber.d("saveProduct: %s", product);
         checkNotNull(product);
         productsRemoteDataSource.saveProduct(product);
-        productsLocalDataSource.saveProduct(product);
-        productsCache.save(product);
+        executeOnDiskIOThread(() -> productsDao.insertProduct(product));
     }
 
     @Override
-    public void checkProduct(Product product) {
+    public void checkProduct(final Product product) {
         Timber.d("checkProduct: %s", product);
         checkNotNull(product);
         productsRemoteDataSource.checkProduct(product);
-        productsLocalDataSource.checkProduct(product);
-        Product checkedProduct = new Product(product, true);
-        productsCache.save(checkedProduct);
+        executeOnDiskIOThread(() -> productsDao.updateChecked(product.getId(), true));
     }
 
     @Override
@@ -90,13 +93,7 @@ public class ProductsRepositoryImpl implements ProductsRepository {
         Timber.d("checkProduct - id: %s", productId);
         checkNotNull(productId);
         productsRemoteDataSource.checkProduct(productId);
-        productsLocalDataSource.checkProduct(productId);
-        Optional<Product> productOptional = productsCache.getProduct(productId);
-        if (productOptional.isPresent()) {
-            Product product = productOptional.get();
-            Product checkedProduct = new Product(product, true);
-            productsCache.save(checkedProduct);
-        }
+        executeOnDiskIOThread(() -> productsDao.updateChecked(productId, true));
     }
 
     @Override
@@ -104,9 +101,7 @@ public class ProductsRepositoryImpl implements ProductsRepository {
         Timber.d("uncheckProduct: %s", product);
         checkNotNull(product);
         productsRemoteDataSource.uncheckProduct(product);
-        productsLocalDataSource.uncheckProduct(product);
-        Product uncheckedProduct = new Product(product, false);
-        productsCache.save(uncheckedProduct);
+        executeOnDiskIOThread(() -> productsDao.updateChecked(product.getId(), false));
     }
 
     @Override
@@ -114,108 +109,61 @@ public class ProductsRepositoryImpl implements ProductsRepository {
         Timber.d("uncheckProduct - id: %s", productId);
         checkNotNull(productId);
         productsRemoteDataSource.uncheckProduct(productId);
-        productsLocalDataSource.uncheckProduct(productId);
-        Optional<Product> productOptional = productsCache.getProduct(productId);
-        if (productOptional.isPresent()) {
-            Product product = productOptional.get();
-            Product uncheckedProduct = new Product(product, false);
-            productsCache.save(uncheckedProduct);
-        }
+        executeOnDiskIOThread(() -> productsDao.updateChecked(productId, true));
     }
 
     @Override
     public void removeCheckedProducts() {
         Timber.d("removeCheckedProducts");
         productsRemoteDataSource.removeCheckedProducts();
-        productsLocalDataSource.removeCheckedProducts();
-        productsCache.removeAllIf(Product::isChecked);
+        executeOnDiskIOThread(productsDao::deleteCheckedProducts);
     }
 
     @Override
-    public void getProduct(final String productId, final LoadProductCallback repositoryLoadProductCallback) {
+    public LiveData<Product> getProduct(final String productId) {
         Timber.d("getProduct");
         checkNotNull(productId);
-        checkNotNull(repositoryLoadProductCallback);
-        Optional<Product> productOptional = productsCache.getProduct(productId);
-        if (productOptional.isPresent()) {
-            Timber.d("Cache - product: %s", productOptional.get());
-            repositoryLoadProductCallback.onProductLoaded(productOptional.get());
-        } else {
-            Timber.d("Cache is empty");
-            getProductFromLocalDataSource(productId, repositoryLoadProductCallback);
-        }
+        //TODO check local database
+        return productsDao.getProductById(productId);
     }
 
     @Override
     public void removeAllProducts() {
         Timber.d("removeAllProducts");
         productsRemoteDataSource.removeAllProducts();
-        productsLocalDataSource.removeAllProducts();
-        productsCache.clear();
+        executeOnDiskIOThread(productsDao::deleteProducts);
     }
 
     @Override
-    public void removeProduct(String productId) {
+    public void removeProduct(final String productId) {
         Timber.d("removeProduct - id: %s", productId);
         checkNotNull(productId);
         productsRemoteDataSource.removeProduct(productId);
-        productsLocalDataSource.removeProduct(productId);
-        productsCache.remove(productId);
+        executeOnDiskIOThread(() -> productsDao.deleteProductById(productId));
     }
 
     public void forceToLoadFromRemoteNextCall() {
         Timber.d("forceToLoadFromRemoteNextCall");
-        productsLocalDataSource.removeAllProducts();
-        productsCache.clear();
+
     }
 
-    public void refreshLocalDataSource(List<Product> products) {
+    public void refreshLocalDataSource(final List<Product> products) {
         Timber.d("refreshLocalDataSource");
-        productsLocalDataSource.removeAllProducts();
-        for (Product product : products) {
-            productsLocalDataSource.saveProduct(product);
-        }
+        executeOnDiskIOThread(() -> productsDao.deleteAndInsertProducts(products));
     }
 
     public void refreshLocalDataSource(Product product) {
         Timber.d("refreshLocalDataSource:");
-        productsLocalDataSource.saveProduct(product);
+        executeOnDiskIOThread(() -> productsDao.insertProduct(product));
     }
 
-    public void refreshCache(List<Product> products) {
-        Timber.d("refreshCache");
-        productsCache.clear();
-        for (Product product : products) {
-            productsCache.save(product);
-        }
+    private void fetchProductsFromRemoteDataSource() {
+        productsRemoteDataSource.getProducts(this::refreshLocalDataSource);
     }
 
-    public void refreshCache(Product product) {
-        Timber.d("refreshCache");
-        productsCache.save(product);
+
+    private void executeOnDiskIOThread(Runnable runnable) {
+        appExecutors.getDiskIOExecutor().execute(runnable);
     }
 
-    public void getProductsFromRemoteDataSource(final LoadProductListCallback loadProductListCallback) {
-        Timber.d("getProductsFromRemoteDataSource");
-        productsRemoteDataSource.getProducts(new ProductListRemoteCallback(this, loadProductListCallback));
-    }
-
-    public void getProductFromRemoteDataSource(final String productId, final LoadProductCallback loadProductCallback) {
-        Timber.d("getProductFromRemoteDataSource - id: %s", productId);
-        productsRemoteDataSource.getProduct(productId, new ProductRemoteCallback(this, loadProductCallback));
-    }
-
-    private void getProductsFromLocalDataSource(final LoadProductListCallback loadProductListCallback) {
-        Timber.d("getProductsFromLocalDataSource");
-        productsLocalDataSource.getProducts(new ProductListLocalCallback(this, loadProductListCallback));
-    }
-
-    private void getProductFromLocalDataSource(final String productId, final LoadProductCallback loadProductCallback) {
-        Timber.d("getProductFromLocalDataSource - id: %s", productId);
-        productsLocalDataSource.getProduct(productId, new ProductLocalCallback(this, productId, loadProductCallback));
-    }
-
-    private List<Product> getProductsFromCache() {
-        return ImmutableList.copyOf(productsCache.getProducts());
-    }
 }

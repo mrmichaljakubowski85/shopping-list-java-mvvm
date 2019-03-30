@@ -6,7 +6,7 @@ import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.tomtre.android.architecture.shoppinglistmvp.data.Product;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.ProductsDataSource;
+import com.tomtre.android.architecture.shoppinglistmvp.data.source.remote.ProductsRemoteDataSource;
 import com.tomtre.android.architecture.shoppinglistmvp.util.AppExecutors;
 
 import org.junit.After;
@@ -38,10 +38,10 @@ import static org.mockito.Mockito.never;
 public class ProductsLocalDataSourceTest {
 
     @Mock
-    private ProductsDataSource.LoadProductCallback loadProductCallback;
+    private ProductsRemoteDataSource.LoadProductCallback loadProductCallback;
 
     @Mock
-    private ProductsDataSource.LoadProductListCallback loadProductListCallback;
+    private ProductsRemoteDataSource.LoadProductListCallback loadProductListCallback;
 
     @Captor
     private ArgumentCaptor<Product> productArgumentCaptor;
@@ -163,8 +163,8 @@ public class ProductsLocalDataSourceTest {
     @Test
     public void shouldRemoveCheckedProducts() {
         //given
-        ProductsDataSource.LoadProductCallback loadProductCallback1 = mock(ProductsDataSource.LoadProductCallback.class);
-        ProductsDataSource.LoadProductCallback loadProductCallback2 = mock(ProductsDataSource.LoadProductCallback.class);
+        ProductsRemoteDataSource.LoadProductCallback loadProductCallback1 = mock(ProductsRemoteDataSource.LoadProductCallback.class);
+        ProductsRemoteDataSource.LoadProductCallback loadProductCallback2 = mock(ProductsRemoteDataSource.LoadProductCallback.class);
 
         Product givenCheckedProduct = createCheckedProduct();
         productsLocalDataSource.saveProduct(givenCheckedProduct);

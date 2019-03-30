@@ -48,7 +48,7 @@ public class ProductDetailPresenter implements ProductDetailContract.Presenter {
         if (isViewAvailableAndActive())
             productDetailView.setLoadingIndicator(true);
         EspressoIdlingResource.increment();
-        productsRepository.getProduct(productId, new ProductDetailLoadCallback(this));
+//        productsRepository.getProduct(productId, new ProductDetailLoadCallback(this));
     }
 
     void showMissingProductInView() {

@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.tomtre.android.architecture.shoppinglistmvp.data.Product;
 import com.tomtre.android.architecture.shoppinglistmvp.data.ProductsCache;
-import com.tomtre.android.architecture.shoppinglistmvp.data.source.ProductsDataSource;
+import com.tomtre.android.architecture.shoppinglistmvp.data.source.remote.ProductsRemoteDataSource;
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.callback.ProductListRemoteCallback;
 import com.tomtre.android.architecture.shoppinglistmvp.data.source.repository.callback.ProductRemoteCallback;
 
@@ -38,10 +38,10 @@ public class ProductsRepositoryImplTest {
     private ProductsCache productsCache;
 
     @Mock
-    private ProductsDataSource productsRemoteDataSource;
+    private ProductsRemoteDataSource productsRemoteDataSource;
 
     @Mock
-    private ProductsDataSource productsLocalDataSource;
+    private ProductsRemoteDataSource productsLocalDataSource;
 
     @Mock
     private ProductsRepository.LoadProductListCallback loadProductListCallback;
@@ -91,7 +91,7 @@ public class ProductsRepositoryImplTest {
         productsRepositoryImpl.getProducts(loadProductListCallback);
 
         //then
-        then(productsLocalDataSource).should().getProducts(any(ProductsDataSource.LoadProductListCallback.class));
+        then(productsLocalDataSource).should().getProducts(any(ProductsRemoteDataSource.LoadProductListCallback.class));
     }
 
     @Test
@@ -221,7 +221,7 @@ public class ProductsRepositoryImplTest {
         productsRepositoryImpl.getProduct(PRODUCT.getId(), loadProductCallback);
 
         //then
-        then(productsLocalDataSource).should().getProduct(eq(PRODUCT.getId()), any(ProductsDataSource.LoadProductCallback.class));
+        then(productsLocalDataSource).should().getProduct(eq(PRODUCT.getId()), any(ProductsRemoteDataSource.LoadProductCallback.class));
     }
 
     @Test
